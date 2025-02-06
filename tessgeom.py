@@ -31,12 +31,12 @@ def rotatepimotion(k, z=0):
     return combinemotion((mp.expjpi(k)*a,mp.expjpi(k)*b,c),translatemotion(z))
 
 
-def motiontomat(phi,b):
-    return ((cmath.exp(1j*phi),b*cmath.exp(1j*phi),sopr(b),1))
+#def motiontomat(phi,b):
+#    return ((cmath.exp(1j*phi),b*cmath.exp(1j*phi),sopr(b),1))
 
 
 def motiontomat(phi,b):
-    return ((cmath.exp(1j*phi),b*cmath.exp(1j*phi),sopr(b),1))
+    return ((cmath.exp(1j*phi),b*cmath.exp(1j*phi),sopr(b)))
 
 def motionbc(b,c):
     motion1=motiontomat(0,-b)

@@ -1,4 +1,5 @@
 import numpy as np
+import cmath
 import tessgeom as g
 from numpy.typing import NDArray
 from PIL import Image
@@ -16,13 +17,17 @@ disk = radius(data) < 1
 def arc(p,q,width):
     motion=g.motiontomat(0,-p)
     qq=g.applymotion(motion,q)
-    line=qq*np.linspace(0,1,width)
-    return g.applymotion(g.motiontomat(0,p),line)
+    l=qq*np.linspace(0,1,width)
+    print (l,type(l))
+    #return g.applymotion(g.motiontomat(0,p),line)
+    return l
 
 def draw(p,q):
     
-    arc=arc(p,q,width)
-    img=Image.fromarray(arc)
+    arcres=arc(p,q,width)
+    l=[(i.real,i.imag) for i in arcres]
+    print(arcres)
+    img=Image.fromarray(l)
     img.show()
 
 if __name__=='__main__':
