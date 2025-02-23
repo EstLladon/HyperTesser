@@ -51,12 +51,10 @@ def applymotion(motion,arg):
 
 def combinemotion(motion1,motion2):
     a,b,c=motion1
-    #print(a,b,c,d)
+    
     e,f,g=motion2
     B=b*g+1
-    #print(D)
-    #return ((a*d*e+b*d*g-a*c*f-b*c*h)/D,(a*a*f+a*b*h-a*b*e-b*b*g)/D,(c*d*e+d*d*g-c*c*f-c*d*h)/D,(a*c*f+a*d*h-b*c*e-b*d*g)/D)
-    #return ((a*e+c*f),(b*e+d*f),(a*g+c*h),(b*g+d*h))
+    
     return ((a*e+c*f)/B,(b*e+f)/B,(a*g+c)/B)
 
 def powermotion(motion,n):

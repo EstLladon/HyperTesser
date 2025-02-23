@@ -1,147 +1,157 @@
 import complexnumbers.*;
-
+import java.lang.Math;
 
 //Interface
-Button ZoomPlusButton;
-Button ZoomMinusButton;
-Button ModelPanButton;
-Button ModelChangeButton;
-Button ClearModelButton;
-Button ClearGeomButton;
-boolean PanAvailable=true;
-boolean ZoomAvailable=true;
-//let radio1;
+int interfaceWidth=110;
+int labelTSize=36;
+Button  ZoomPlusButton=new Button(0, 10, 40, 40,"+",36,0);
+Button  ZoomMinusButton=new Button(40, 10, 40, 40,"-",36,1);
+Button  ModelPanButton=new Button(0, 70, 100, 40,"Model Pan",15,2);
+Button  AddLensButton=new Button(0, 120, 100, 40,"Add Lens",15,3);
+Button  ModelViewButton=new Button(0, 170, 100, 40,"Model Inner",15,4);
+Button  AddInnerPointButton=new Button(0, 220, 100, 40,"Add Point",15,5);
+Button  AddInnerLineButton=new Button(0, 270, 100, 40,"Add Line",15,7);
+Button  ModelDragButton=new Button(0, 500, 100, 40,"Model Drag",15,6);
+Button  ModelDragResetButton=new Button(0, 550, 100, 40,"Model Return",15,8);
+Button  ModelResetButton=new Button(0, 600, 100, 40,"Model Reset",15,9);
+gui Gui;
 
-
-//Model elements
-Arc[] ModelBorderOuter = new Arc[4];
-Arc[] ModelBorderInner = new Arc[2];
-int MSize=1;
-//gArc[] InnerModel;
-Arc[] BaseModel = new Arc[1];
-Arc BaseArc;
-
-//Content elements
-//gPoint[] gPoints;
-//gLine[] gLines;
-//gArc[] gArcs;
-
+//Model 
+Model MainModel;
+//diagram
+diagram D;
 
 //parameters for image elements
-int R=200;
 int SpotR=5;
-float xpt;
-float ypt;
 int SpotTreshold=40;
 int DotThreshold=10;
-
-//hyperplane display parameters
-Complex[] defmotion;
-
-//global variables
-int Mode=0;
-float xr,yr,a1;
-Arc Arc1,Arc2,OArc1,OArc2;
 
 void setup() {
   size(1000, 800);
   textAlign(CENTER, CENTER);
   textSize(36);
-  xpt=width/2;
-  ypt=height/2;
   ellipseMode(RADIUS);
   background(245,245,220);
-  //interface
-  ZoomPlusButton=new Button(820, 10, 40, 40,"+",36,false);
-  ZoomMinusButton=new Button(860, 10, 40, 40,"-",36,false);
-  ModelPanButton=new RButton(820, 70, 100, 40,"Model Pan",15,false,true);
-  ModelChangeButton=new RButton(820, 120, 100, 40,"Model Change",15,false,false);
+
+  //init interface
+  Gui=new gui(interfaceWidth,2);
+  Gui.addButton(ZoomPlusButton);
+  Gui.addButton(ZoomMinusButton);
+  Gui.addDefButton(ModelPanButton);
+  Gui.addButton(AddLensButton);
+  Gui.addButton(ModelViewButton);
+  Gui.addButton(AddInnerPointButton);
+  Gui.addButton(AddInnerLineButton);
+  Gui.addButton(ModelDragButton);
+  Gui.addButton(ModelDragResetButton);
+  Gui.addButton(ModelResetButton);
+  Gui.ButtonState=2;
   //initializing Model
-  BaseArc=new Arc(0,0,1,-PI,PI);
-  BaseModel[0]=BaseArc;
-  ModelBorderOuter[0]=BaseArc;
+  MainModel=new Model(200);
+  //init content
+  D=new diagram();
 }
   
 void draw() {
   background(245,245,220);
-  //translate(xpt,ypt);
-  String txt = String.format("FPS: %6.2fps", frameRate);
+  String txt = String.format("FPS: %6.2fps Model: %d Lenses,%d Points, %d Lines, %d Arcs", frameRate, MainModel.Lenses.size(),D.gPoints.size(),D.gLines.size(),D.gArcs.size());
   windowTitle(txt);
-  updateInterface();
-  pushMatrix();
-  translate(xpt,ypt);
   drawModel();
-  drawContent();
-  popMatrix();
-  drawInterface();
+  Gui.display();
 }
-
-//interface classes and functions
-void updateInterface(){
-  ZoomPlusButton.update();
-  ZoomMinusButton.update();
-  ModelChangeButton.update();
-  ModelPanButton.update();
-}
-
-void drawInterface(){
-  ZoomPlusButton.display();
-  ZoomMinusButton.display();
-  ModelChangeButton.display();
-  ModelPanButton.display();
-}
-
 
 void mousePressed() {
-  if (ZoomPlusButton.over && ZoomAvailable) {
-    R+=10;
+  int bid=Gui.whichButtonOver();
+  if (bid==ZoomPlusButton.id) {
+    MainModel.R+=10;
   }
-  if (ZoomMinusButton.over && ZoomAvailable) {
-    R-=10;
-    if(R<50){R=50;}
+  else if (bid==ZoomMinusButton.id) {
+    MainModel.R-=10;
+    if(MainModel.R<50){MainModel.R=50;}
   }
+  else if(bid==ModelDragResetButton.id){
+   MainModel.DragReset(); 
+  }
+  else if(bid==ModelResetButton.id){
+   MainModel.Reset(D);
+  }
+  else if (bid>=0){
+    Gui.ButtonState=bid;
+    Gui.Mode=0;
+  } 
+  else if ((Gui.ButtonState==AddLensButton.id)||(Gui.ButtonState==AddInnerPointButton.id)||(Gui.ButtonState==AddInnerLineButton.id)){
+     Gui.Mode++;
+  }
+  //pan
+  if ((Gui.ButtonState==AddLensButton.id)||(Gui.ButtonState==ModelDragButton.id)){
+    Gui.Switches[0]=false;
+  } 
+  else{Gui.Switches[0]=true;}
 }
 
 void mouseDragged(){
-  if (PanAvailable){
-  xpt-=(pmouseX-mouseX);
-  ypt-=(pmouseY-mouseY);
+  if (Gui.Switches[0]){
+    MainModel.Pan();
+  }
+  else if(Gui.ButtonState==ModelDragButton.id){
+    MainModel.Drag();
   }
 }
 
-
-boolean overRect(int x, int y, int iw, int ih) {
-  if (mouseX >= x && mouseX <= x+iw &&
-    mouseY >= y && mouseY <= y+ih) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-boolean overCircle(int x, int y, int r) {
-  float disX = x - mouseX;
-  float disY = y - mouseY;
-  if(sq(disX) + sq(disY) < sq(r)) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-//Model functions
 void drawModel(){
-  fill(255);
-  for(int i=0;i<MSize;i++){
-    ModelBorderOuter[i].display();
-  }
-  fill(0);
-  for(int i=0;i<2*MSize-2;i++){
-    ModelBorderInner[i].display();
-  }
-  
-}
-
-void drawContent(){
-  
+  pushMatrix();
+  translate(MainModel.xpt,MainModel.ypt);
+  MainModel.pinput=new Complex(mouseX-MainModel.xpt,mouseY-MainModel.ypt);
+  MainModel.DrawBaseModel();
+  MainModel.drawContent(D);
+  MainModel.DrawInnerModel();
+  switch(Gui.ButtonState){
+    case 2:
+        MainModel.DrawLenses(D);
+        break;
+    case 3://Add lens
+      switch(Gui.Mode){
+        case 0:
+        MainModel.DrawAddLens0();
+        break;
+        case 1:
+        MainModel.DrawAddLens1(D);
+        break;
+        case 2:
+        MainModel.DrawAddLens2();
+        Gui.Mode=0;
+        Gui.ButtonState=2;
+        break;
+      }
+      break;
+    case 5://Add inner dot
+      switch(Gui.Mode){
+        case 0:
+         MainModel.DrawAddInnerDot0();
+        break;
+        case 1:
+         MainModel.DrawAddInnerDot1(D);        
+         Gui.Mode=0;
+         break;
+      }
+      break;
+    case 6:
+        MainModel.DrawLenses(D);
+        break;    
+    case 7://add inner line      
+      switch(Gui.Mode){
+        case 0:
+         MainModel.DrawAddLine0();
+         break;
+        case 1:
+        MainModel.DrawAddLine1();
+         break;
+        case 2:
+         MainModel.DrawAddLine2(D);
+         Gui.Mode=0;
+         break;
+      }
+      break;
+  } 
+  popMatrix();
 }
