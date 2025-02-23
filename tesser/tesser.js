@@ -1,3 +1,4 @@
+
 //Interface
 let button1;
 let button2;
@@ -8,16 +9,25 @@ let radio1;
 let ModelBorderOuter=[];
 let ModelBorderInner=[];
 let InnerModel=[];
+let BaseModel=[];
 let BaseArc;
 
+//Content elements
+let gPoints=[];
+let gLines=[];
+let gArcs=[];
 
 
-
-//variables for image elements
+//parameters for image elements
 let R=200;
-let SpotR=5
+let SpotR=5;
 let xpt=0;
 let ypt=0;
+let SpotTreshold=40;
+let DotThreshold=10;
+
+//hyperplane display parameters
+defmotion=[1,0,0];
 
 //global variables
 let Mode=0;
@@ -50,14 +60,50 @@ class Arc{
 
 //geometry classes
 
-class geomPoint{
+class gPoint{
   constructor(x,y,label){
    this.x=x;
    this.y=y;
    this.label=label;
   }
-  display(){
+  displayInner(){
+    x=getX(this.x,this,y,BaseModel);
+    y=getY(this.x,this,y,BaseModel);
+    size=getSpotSizeBase(this.x,this.y);
+   ellipse(x, y, size, size); 
+   textSize(size*2);
+   text(this.label,x,y-size);
+  }
+  displayOuter(){
    arc(R*this.cx, R*this.cy, R*this.r, R*this.r, this.phi, this.psi,OPEN); 
+  }
+}
+
+class gLine{
+  constructor(phi,psi,label){
+   this.phi=x;
+   this.psi=y;
+   this.label=label;
+  }
+  displayInner(){
+    
+  }
+  displayOuter(){
+   
+  }
+}
+
+class gArc{
+  constructor(x1,y1,x2,y2){
+   this.phi=x;
+   this.psi=y;
+   this.colour=0;
+  }
+  displayInner(){
+    
+  }
+  displayOuter(){
+   
   }
 }
 
@@ -67,9 +113,9 @@ function setup() {
 createCanvas(800, 800);
 xpt=width/2;
 ypt=height/2;
-ellipseMode(RADIUS)
+ellipseMode(RADIUS);
   background("beige");
-  translate(width/2,height/2)
+  //translate(width/2,height/2)
   
   button1 = createButton("+"); //, "pressed");
   
@@ -90,6 +136,7 @@ ellipseMode(RADIUS)
   //radio1.option(5, "Group");
   radio1.value(1); 
   BaseArc=new Arc(0,0,1,-PI,PI);
+  BaseModel[0]=BaseArc;
   ModelBorderOuter[0]=BaseArc;
   
 }
@@ -131,28 +178,11 @@ function draw() {
         xr2=x+R*cos(a2);
         yr2=y+R*sin(a2);
         
-        if(a1>=a2){
-          if (a1-a2<PI){
-            ann1=a1+HALF_PI;
-            ann2=a2-HALF_PI;
-            }else{
-            ann1=a2+HALF_PI;
-            ann2=a1-HALF_PI;
-            
-            }
-          }
-          else{
-            if (a2-a1<PI){
-              ann1=a2+HALF_PI;
-              ann2=a1-HALF_PI;
-              
-            }
-            else{
-              ann1=a1+HALF_PI;
-            ann2=a2-HALF_PI;
-              
-            }
-          }
+        
+          
+         
+        ann1=getann1(a1,a2);
+        ann2=getann2(a1,a2);
         noFill();
         
         OArc1=new Arc(x+1/cos(an2)*cos(an1),y+1/cos(an2)*sin(an1),tan(an2),ann1,ann2)
@@ -212,12 +242,16 @@ function mousePressed(){
 }
 
 function button1Clicked() {  
+  if (radio1.value()=='1'){
   R+=10;
+  }
 }
 
 function button2Clicked() {  
+  if (radio1.value()=='1'){
   R-=10;
   if(R<50){R=50;}
+  }
 }
 
 function SwitchMode(){
@@ -229,7 +263,7 @@ function SwitchMode(){
   
 }
 
-//Geom Functions
+//General Geom Functions
 function trueatan2(x,y){
  return HALF_PI-atan2(x,y); 
 }
@@ -263,10 +297,44 @@ function DrawInnerModel(){
   stroke(0);
 }
 
+function getSpotSizeBase(x,y){
+  r=sqrt(x*x+y*y);
+  d=R*(1-r);
+  if (d>=SpotThreshold){
+    return SpotR;
+  }
+  if (d>=DotThreshold){
+    return (SpotR*(d-DotTreshold)/(SpotTreshold-DotTreshold))
+  }
+  return 0;
+}
+
+function getann1(a1,a2){
+      if ((a1-a2>=PI)|((a1<a2)&(a1>=a2-PI))){
+           return a2+HALF_PI;
+           //ann2=a1-HALF_PI;
+         }else{
+           return a1+HALF_PI;
+           //ann2=a2-HALF_PI;
+         }       
+}
+
+function getann2(a1,a2){
+      if ((a1-a2>=PI)|((a1<a2)&(a1>=a2-PI))){
+           //return a2+HALF_PI;
+           return a1-HALF_PI;
+         }else{
+           //return a1+HALF_PI;
+           return a2-HALF_PI;
+         }       
+}
+
+//Element drawing
+
 function spot(x, y) {
   push();
   //translate(xpt,ypt);
   translate(x, y);
-  ellipse(x, y, 15, 15);
+  ellipse(x, y, SpotR, SpotR);
   pop();
 }
