@@ -5,6 +5,9 @@ class gPoint{
    p=ip;
    label=ilabel;
   }
+  gPoint(Complex ip){
+    p=ip;
+  }
 }
 
 class gLine{
@@ -64,11 +67,18 @@ class gMotion{
     b=new Complex();
     c=b;
   }
-  gMotion(double phi,Complex t){
+  gMotion(double phi){
     //(exp(i*phi),t*exp(i*phi),conj(b))
     a=(new Complex(0,phi)).exp();
-    b=a.mul(t);
-    c=t.conj();
+    b=new Complex();
+    c=new Complex();
+  }
+  gMotion(double phi,Complex t){
+    a=new Complex(1);
+    b=t.neg();
+    c=t.conj().neg();
+    update(new gMotion(phi));
+    update(new gMotion(t));
   }
   gMotion(Complex t){
    //(1,t,conj(t)) 
@@ -129,6 +139,17 @@ class gMotion{
     b=nb;
     c=nc;
   }
+  void preupdate(gMotion m){
+    //a,b,c=motion1    
+    //e,f,g=motion2
+    Complex B=m.b.mul(c).add(new Complex(1));// B=b*g+1
+    Complex na=m.a.mul(a).add(m.c.mul(b)).div(B);//(a*e+c*f)/B;
+    Complex nb=m.b.mul(a).add(b).div(B);//(b*e+f)/B;
+    Complex nc=m.a.mul(c).add(m.c).div(B);//(a*g+c)/B;
+    a=na;
+    b=nb;
+    c=nc;
+  }
   gMotion power(int n){
     gMotion res=new gMotion();
     for(int i=0;i<n;i++){
@@ -137,17 +158,41 @@ class gMotion{
     return res;
   }
 }
-
+//diagram
 class diagram{
   ArrayList<gPoint> gPoints;
   ArrayList<gLine> gLines;
   ArrayList<gSemiLine> gSemiLines;
   ArrayList<gArc> gArcs;
-  
+  gPoint newpoint;
+  gSemiLine newsline;
+  gLine newline;
+  gArc newarc;
   diagram(){
     gPoints=new ArrayList<gPoint>();
     gLines=new ArrayList<gLine>();
     gSemiLines=new ArrayList<gSemiLine>();
     gArcs = new ArrayList<gArc>();
   }
+}
+
+//different models
+Complex PtoBK(Complex pp){
+  Complex res=new Complex();
+  res.setPolar(Math.tanh(2*distFromZero(pp)),pp.arg());
+  return res;
+}
+Complex BKtoP(Complex pp){
+  Complex res=new Complex();
+  res.setPolar(Math.tanh(distFromZero(pp)/2),pp.arg());
+  return res;
+}
+//misc hyper functions
+double wdist(Complex t,Complex s){
+    return new gMotion(t.neg()).apply(s).abs();
+  }
+  
+double distFromZero(Complex p){
+  double r=p.abs();
+ return Math.log((1+r)/(1-r)); 
 }
