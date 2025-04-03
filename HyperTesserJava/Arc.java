@@ -1,4 +1,5 @@
 import complexnumbers.Complex;
+import org.jetbrains.annotations.NotNull;
 
 import static processing.core.PConstants.*;
 
@@ -6,7 +7,7 @@ class Arc {
     Complex c;
     double r, phi, psi;
 
-    Arc(double x, double y, double ir, double iphi, double ipsi, ArcType it) {
+    Arc(double x, double y, double ir, double iphi, double ipsi, @NotNull ArcType it) {
         switch (it) {
             case BIG:
                 c = new Complex(x, y);
@@ -35,7 +36,7 @@ class Arc {
         }
     }
 
-    Arc(double iphi, double ipsi, ArcType it) {
+    Arc(double iphi, double ipsi, @NotNull ArcType it) {
         switch (it) {
             case BIG:
                 c = new Complex();
@@ -87,7 +88,7 @@ class Arc {
         }
     }
 
-    Arc(Complex ic, double iphi, Complex iz) {
+    Arc(Complex ic, double iphi, @NotNull Complex iz) {
         HyperUtils.gMotion mp1 = new HyperUtils.gMotion(iz.sub(ic));
         double alpha = mp1.applyinv(iphi);
         double ipsi = mp1.apply(alpha + PI);
@@ -136,22 +137,24 @@ class Arc {
         return c.add(res);
     }
 
-    void display(double R, int[] SColor, int[] FColor,HyperTesser h) {
+    void display(double R, int[] SColor, int[] FColor, int weight, @NotNull HyperTesser h) {
         //HyperTesser h=HyperTesser.getInstance();
         h.stroke(SColor);
+        h.strokeWeight(weight);
         h.fill(FColor);
         h.arc((float) (R * c.re), (float) (R * c.im), (float) (R * r), (float) (R * r), (float) (phi), (float) (psi), OPEN);
     }
 
-    void display(double R, int[] SColor,HyperTesser h) {
-        //HyperTesser h=HyperTesser.getInstance();
+    void display(double R, int[] SColor, int weight, @NotNull HyperTesser h) {
         h.stroke(SColor);
+        h.strokeWeight(weight);
         h.noFill();
         h.arc((float) (R * c.re), (float) (R * c.im), (float) (R * r), (float) (R * r), (float) (phi), (float) (psi), OPEN);
     }
 
-    void displayline(double R,HyperTesser h) {
-        //HyperTesser h=HyperTesser.getInstance();
+    void displayline(double R, int[] SColor, int weight, @NotNull HyperTesser h) {
+        h.stroke(SColor);
+        h.strokeWeight(weight);
         h.line((float) (R * e1().re), (float) (R * e1().im), (float) (R * e2().re), (float) (R * e2().im));
     }
 
@@ -169,7 +172,7 @@ class Arc {
     }
 
     //Aux Functions
-    static void displaySpot(Complex z, double r, double R, int[] SColor, int[] FColor,HyperTesser h){
+    static void displaySpot(@NotNull Complex z, double r, double R, int[] SColor, int[] FColor, @NotNull HyperTesser h){
         h.stroke(SColor);
         h.fill(FColor);
         h.ellipse((float)(R*z.re),(float)(R*z.im),(float)r,(float)r);
@@ -210,6 +213,13 @@ class Arc {
     //angle diff for small arc
     static double angdiff(double phi, double psi) {
         return getTar1(phi, psi) + TWO_PI - getTar2(phi, psi);
+    }
+
+    //between
+    boolean isIn(double iphi){
+        if (iphi>phi&&iphi<psi){return true;}
+        if (iphi+TWO_PI>phi&&iphi+TWO_PI<psi){return true;}
+        return false;
     }
 
 

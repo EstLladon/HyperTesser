@@ -32,19 +32,19 @@ class gui{
             button.display(interfaceWidth, ButtonState,h);
         }
     }
-    int whichButtonOver(HyperTesser h){
+    int whichButtonOver(double x,double y, double w){
         for(int i=0;i<Buttons.size();i++){
-            if (overButton(i,h)){return Buttons.get(i).id;}
+            if (overButton(i,x,y,w)){return Buttons.get(i).id;}
         }
         return -1;
     }
-    boolean overButton(int i,HyperTesser h){
+    boolean overButton(int i,double x,double y, double w){
         //HyperTesser h=HyperTesser.getInstance();
-        float a= h.width - interfaceWidth+Buttons.get(i).x;
+        float a= (float)w - interfaceWidth+Buttons.get(i).x;
         float b=a+Buttons.get(i).boxx;
         float c=Buttons.get(i).y;
         float d = c+Buttons.get(i).boxy;
-        return (h.mouseX >= a) && (h.mouseX <= b) && (h.mouseY >= c) && (h.mouseY <= d);
+        return (x >= a) && (x <= b) && (y >= c) && (y <= d);
     }
 }
 

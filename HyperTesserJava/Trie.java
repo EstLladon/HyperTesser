@@ -1,3 +1,5 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 class TrieNode<T> {
@@ -13,13 +15,13 @@ class TrieNode<T> {
 }
 
 public class Trie<T> implements Iterable<String> {
-    private final TrieNode<T> root;
+    final TrieNode<T> root;
 
     public Trie(T rootvalue) {
         root = new TrieNode<>(rootvalue);
     }
 
-    public void insert(String word,T value) {
+    public void insert(@NotNull String word, T value) {
         TrieNode<T> node = root;
         for (char ch : word.toCharArray()) {
             node.children.putIfAbsent(ch, new TrieNode<>(value));
@@ -28,7 +30,7 @@ public class Trie<T> implements Iterable<String> {
         node.isEndOfWord = true;
     }
 
-    public boolean search(String word) {
+    public boolean search(@NotNull String word) {
         TrieNode<T> node = root;
         for (char ch : word.toCharArray()) {
             if (!node.children.containsKey(ch)) {
@@ -38,7 +40,18 @@ public class Trie<T> implements Iterable<String> {
         }
         return node.isEndOfWord;
     }
-    public T getbody(String word) {
+    public T begsearch(@NotNull String word) {
+        TrieNode<T> node = root;
+        for (char ch : word.toCharArray()) {
+            if (node.isEndOfWord){return node.body;}
+            if (!node.children.containsKey(ch)) {
+                return root.body;
+            }
+            node = node.children.get(ch);
+        }
+        return root.body;
+    }
+    public T getbody(@NotNull String word) {
         TrieNode<T> node = root;
         for (char ch : word.toCharArray()) {
             node = node.children.get(ch);
@@ -46,7 +59,7 @@ public class Trie<T> implements Iterable<String> {
         return node.body;
     }
 
-    public boolean startsWith(String prefix) {
+    public boolean startsWith(@NotNull String prefix) {
         TrieNode<T> node = root;
         for (char ch : prefix.toCharArray()) {
             if (!node.children.containsKey(ch)) {
@@ -57,54 +70,45 @@ public class Trie<T> implements Iterable<String> {
         return true;
     }
 
-    @Override
-    public Iterator<String> iterator() {
+    public @NotNull Iterator<String> iterator() {
         return new TrieIterator<>(root);
     }
 
     private static class TrieIterator<T> implements Iterator<String> {
-        private final Queue<Pair<T>> queue;
+        private final Queue<TPair<T>> queue;
 
         public TrieIterator(TrieNode<T> root) {
             queue = new LinkedList<>();
-            queue.offer(new Pair<>(root, ""));
+            queue.offer(new TPair<>(root, ""));
         }
 
         @Override
         public boolean hasNext() {
             while (!queue.isEmpty()) {
-                Pair<T> front = queue.peek();
+                TPair<T> front = queue.peek();
                 if (front.node.isEndOfWord) {
                     return true;
                 }
                 queue.poll();
                 for (Map.Entry<Character, TrieNode<T>> entry : front.node.children.entrySet()) {
-                    queue.offer(new Pair<>(entry.getValue(), front.word + entry.getKey()));
+                    queue.offer(new TPair<>(entry.getValue(), front.word + entry.getKey()));
                 }
             }
             return false;
         }
 
-        @Override
         public String next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            Pair<T> front = queue.poll();
+            TPair<T> front = queue.poll();
+            assert front != null;
             for (Map.Entry<Character, TrieNode<T>> entry : front.node.children.entrySet()) {
-                queue.offer(new Pair<>(entry.getValue(), front.word + entry.getKey()));
+                queue.offer(new TPair<>(entry.getValue(), front.word + entry.getKey()));
             }
             return front.word;
         }
 
-        private static class Pair<T> {
-            TrieNode<T> node;
-            String word;
-
-            Pair(TrieNode<T> node, String word) {
-                this.node = node;
-                this.word = word;
-            }
-        }
+        record TPair<T>(TrieNode<T> node,String word){}
     }
 }
